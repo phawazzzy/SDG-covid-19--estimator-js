@@ -47,12 +47,12 @@ const covid19ImpactEstimator = (data) => {
   // challenge 2
 
   // number of severe positive cases
-  const severeCasesByRequestedTime = 0.15 * IMinfectionsBYRequestedTime;
-  const severeCasesByRequestedTimeSI = 0.15 * SinfectionsByRequestedTime;
+  const severeCasesByRequestedTime = Math.trunc(0.15 * IMinfectionsBYRequestedTime);
+  const severeCasesByRequestedTimeSI = Math.trunc(0.15 * SinfectionsByRequestedTime);
 
-  const IhospitalBedsByRequestedTime = (0.35 * totalHospitalBeds) - severeCasesByRequestedTime;
+  const IhospitalBedsByRequestedTime = Math.trunc((0.35 * totalHospitalBeds) - severeCasesByRequestedTime);
 
-  const ShospitalBedsByRequestedTime = (0.35 * totalHospitalBeds) - severeCasesByRequestedTimeSI;
+  const ShospitalBedsByRequestedTime = Math.trunc((0.35 * totalHospitalBeds) - severeCasesByRequestedTimeSI);
 
   // challenge 3
   const IcasesForICUByRequestedTime = 0.05 * IMinfectionsBYRequestedTime;
