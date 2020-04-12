@@ -63,9 +63,9 @@ const covid19ImpactEstimator = (data) => {
 
   const AVDP = region.avgDailyIncomePopulation;
   const AVDIU = region.avgDailyIncomeInUSD;
-  const IMdollarsInFlight = (IMinfectionsBYRequestedTime * AVDP * AVDIU) / Math.trunc(normalise(timeToElapse) / 3);
+  const IMdollarsInFlight = (IMinfectionsBYRequestedTime * AVDP * AVDIU) / Math.trunc(normalise(timeToElapse));
 
-  const SIdollarsInFlight = (SinfectionsByRequestedTime * region.avgDailyIncomePopulation * region.avgDailyIncomeInUSD) / Math.trunc(normalise(timeToElapse) / 3);
+  const SIdollarsInFlight = (SinfectionsByRequestedTime * region.avgDailyIncomePopulation * region.avgDailyIncomeInUSD) / Math.trunc(normalise(timeToElapse));
 
   const IMDIF = Math.trunc(IMdollarsInFlight);
   const SIDIF = Math.trunc(SIdollarsInFlight);
