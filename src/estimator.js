@@ -42,8 +42,8 @@ const covid19ImpactEstimator = (data) => {
 
   // number of positive people
 
-  const IMinfectionsBYRequestedTime = impactcurrentlyInfected * 2 ** Math.trunc(normalise(timeToElapse) / 3);
-  const SinfectionsByRequestedTime = SImpactcurrentlyInfected * 2 ** Math.trunc(normalise(timeToElapse) / 3);
+  const IMinfectionsBYRequestedTime = impactcurrentlyInfected * 2 ** (Math.trunc(normalise(timeToElapse) / 3));
+  const SinfectionsByRequestedTime = SImpactcurrentlyInfected * 2 ** (Math.trunc(normalise(timeToElapse) / 3));
   // challenge 2
 
   // number of severe positive cases
