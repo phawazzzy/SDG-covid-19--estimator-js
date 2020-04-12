@@ -1,94 +1,71 @@
-/* eslint-disable max-len */
-/* eslint-disable consistent-return */
+
 const covid19ImpactEstimator = (data) => {
-  // {
-  //   region: {
-  //   name: "Africa",
-  //   avgAge: 19.7,
-  //   avgDailyIncomeInUSD: 5,
-  //   avgDailyIncomePopulation: 0.71
-  //   },
-  //   periodType: "days",
-  //   timeToElapse: 58,
-  //   reportedCases: 674,
-  //   population: 66622705,
-  //   totalHospitalBeds: 1380614
-  //   }
+  const OP = {
+    data: { ...data }, // the input data you got
+    Im: {}, // your best case estimation
+    SI: {} // your severe case estimation
+  };
 
-  const {
-    reportedCases,
-    timeToElapse,
-    periodType,
-    // population,
-    totalHospitalBeds,
-    region
-  } = data;
-
-  function normalise(userTime) {
-    let time = '';
-    if (periodType === 'days') {
-      time = userTime;
+  const getHBRT = (totalHospitalBeds, SCRT) => {
+    const useableBedSpace = totalHospitalBeds * 0.35;
+    return useableBedSpace - SCRT;
+  };
+  const normDate = (period, figure) => {
+    let result = '';
+    if (period === 'days') {
+      result = figure;
     }
-    if (periodType === 'weeks') {
-      time = userTime * 7;
+    if (period === 'weeks') {
+      result = figure * 7;
     }
-    if (periodType === 'months') {
-      time = userTime * 30;
+    if (period === 'months') {
+      result = figure * 30;
     }
-    return time;
-  }
-  const impactcurrentlyInfected = reportedCases * 10;
-  const SImpactcurrentlyInfected = reportedCases * 50;
+    return result;
+  };
+  const ADIP = data.region.avgDailyIncomePopulation;
+  const ADIU = data.region.avgDailyIncomeInUSD;
+  const PT = data.periodType;
+  const TE = data.timeToElapse;
+  OP.Im.CI = data.reportedCases * 10;
+  OP.SI.CI = data.reportedCases * 50;
+  OP.Im.IRT = OP.Im.CI * 2 ** Math.trunc(normDate(PT, TE) / 3);
+  OP.SI.IRT = OP.SI.CI * 2 ** Math.trunc(normDate(PT, TE) / 3);
+  OP.Im.SCRT = Math.trunc(OP.Im.IRT * 0.15);
+  OP.SI.SCRT = Math.trunc(OP.SI.IRT * 0.15);
+  OP.Im.HBRT = Math.trunc(getHBRT(data.totalHospitalBeds, OP.Im.SCRT));
+  OP.SI.HBRT = Math.trunc(getHBRT(data.totalHospitalBeds, OP.SI.SCRT));
+  OP.Im.CFIRT = Math.trunc(OP.Im.IRT * 0.05);
+  OP.SI.CFIRT = Math.trunc(OP.SI.IRT * 0.05);
+  OP.Im.CFVRT = Math.trunc(OP.Im.IRT * 0.02);
+  OP.SI.CFVRT = Math.trunc(OP.SI.IRT * 0.02);
+  OP.Im.DIF = Math.trunc(
+    (OP.Im.IRT * ADIP * ADIU) / Math.trunc(normDate(PT, TE))
+  );
+  OP.SI.DIF = Math.trunc(
+    (OP.SI.IRT * ADIP * ADIU) / Math.trunc(normDate(PT, TE))
+  );
 
-  // number of positive people
-
-  const IMinfectionsBYRequestedTime = impactcurrentlyInfected * 2 ** Math.trunc(normalise(timeToElapse) / 3);
-  const SinfectionsByRequestedTime = SImpactcurrentlyInfected * 2 ** Math.trunc(normalise(timeToElapse) / 3);
-  // challenge 2
-
-  // number of severe positive cases
-  const severeCasesByRequestedTime = Math.trunc(0.15 * IMinfectionsBYRequestedTime);
-  const severeCasesByRequestedTimeSI = Math.trunc(0.15 * SinfectionsByRequestedTime);
-
-  const IhospitalBedsByRequestedTime = Math.trunc((0.35 * totalHospitalBeds) - severeCasesByRequestedTime);
-
-  const ShospitalBedsByRequestedTime = Math.trunc((0.35 * totalHospitalBeds) - severeCasesByRequestedTimeSI);
-
-  // challenge 3
-  const IcasesForICUByRequestedTime = Math.trunc(0.05 * IMinfectionsBYRequestedTime);
-  const SIcasesForICUByRequestedTime = Math.trunc(0.05 * SinfectionsByRequestedTime);
-
-  const IcasesForVentilatorsByRequestedTime = Math.trunc(IMinfectionsBYRequestedTime * 0.02);
-  const SIcasesForVentilatorsByRequestedTime = Math.trunc(SinfectionsByRequestedTime * 0.02);
-
-  const AVDP = region.avgDailyIncomePopulation;
-  const AVDIU = region.avgDailyIncomeInUSD;
-  const IMdollarsInFlight = (IMinfectionsBYRequestedTime * AVDP * AVDIU) / Math.trunc(normalise(timeToElapse) / 3);
-
-  const SIdollarsInFlight = (SinfectionsByRequestedTime * region.avgDailyIncomePopulation * region.avgDailyIncomeInUSD) / Math.trunc(normalise(timeToElapse) / 3);
-
-  const IMDIF = Math.trunc(IMdollarsInFlight);
-  const SIDIF = Math.trunc(SIdollarsInFlight);
-
+  // OP object
   return {
     data: { ...data },
     impact: {
-      currentlyInfected: impactcurrentlyInfected,
-      infectionsByRequestedTime: IMinfectionsBYRequestedTime,
-      severeCasesByRequestedTime,
-      hospitalBedsByRequestedTime: IhospitalBedsByRequestedTime,
-      casesForICUByRequestedTime: IcasesForICUByRequestedTime,
-      casesForVentilatorsByRequestedTime: IcasesForVentilatorsByRequestedTime,
-      dollarsInFlight: IMDIF
+      currentlyInfected: OP.Im.CI,
+      infectionsByRequestedTime: OP.Im.IRT,
+      severeCasesByRequestedTime: OP.Im.SCRT,
+      hospitalBedsByRequestedTime: OP.Im.HBRT,
+      casesForICUByRequestedTime: OP.Im.CFIRT,
+      casesForVentilatorsByRequestedTime: OP.Im.CFVRT,
+      dollarsInFlight: OP.Im.DIF
     },
     severeImpact: {
-      currentlyInfected: SImpactcurrentlyInfected,
-      infectionsByRequestedTime: SinfectionsByRequestedTime,
-      severeCasesByRequestedTime: severeCasesByRequestedTimeSI,
-      hospitalBedsByRequestedTime: ShospitalBedsByRequestedTime,
-      casesForICUByRequestedTime: SIcasesForICUByRequestedTime,
-      casesForVentilatorsByRequestedTime: SIcasesForVentilatorsByRequestedTime,
-      dollarsInFlight: SIDIF
+      currentlyInfected: OP.SI.CI,
+      infectionsByRequestedTime: OP.SI.IRT,
+      severeCasesByRequestedTime: OP.SI.SCRT,
+      hospitalBedsByRequestedTime: OP.SI.HBRT,
+      casesForICUByRequestedTime: OP.SI.CFIRT,
+      casesForVentilatorsByRequestedTime: OP.SI.CFVRT,
+      dollarsInFlight: OP.SI.DIF
     }
   };
 };
